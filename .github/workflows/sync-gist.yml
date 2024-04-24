@@ -1,10 +1,21 @@
 name: Sync to Gist
 on:
-  push:
+  workflow_dispatch:
     branches:
       - 'main'
 jobs:
   Project-1-Gist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Gist Repo Sync
+        uses: pentatonicfunk/action-gist-repo-sync@v1.8
+        with:
+          gist_token: ${{ secrets.GIST_TOKEN }}
+          gist_id: 59aa5dc1ebb93c8b9812e683cb5e7cbc
+          source_path: computer-networks
+  Project-2-Gist:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

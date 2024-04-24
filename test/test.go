@@ -1,0 +1,70 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+)
+
+type UUIDData struct {
+	UUID string `json:"uuid"`
+}
+
+type JSONData struct {
+	Data []UUIDData `json:"data"`
+}
+
+func main() {
+	// Read the JSON file
+	jsonFile, err := os.Open("/Users/bubp/Personal/Learnings/test/data.json")
+	if err != nil {
+		fmt.Println("Error opening JSON file:", err)
+		return
+	}
+	defer jsonFile.Close()
+
+	// Parse the JSON file
+	var jsonData JSONData
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	err = json.Unmarshal(byteValue, &jsonData)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return
+	}
+
+	// Iterate over UUIDs and send cURL requests
+	for _, entry := range jsonData.Data {
+		uuid := entry.UUID
+		start := time.Now()
+
+		// Execute cURL command with UUID replaced
+		cmd := exec.Command("curl",
+			"https://dealinsights-v3.groupondev.com/api/v1/showDeal/dealPerformance?dealUUID="+uuid+"&span=7d",
+			"-H", "accept: */*",
+			"-H", "accept-language: en-US,en;q=0.9",
+			"-H", "cookie: b=37b47dc0-c97b-11ee-9ff6-0b0472e39f74; user_locale=en_US; _csrf=SB---nrPsbO9j7fJzAQiUIWY; division=chicago; ipll=%7B%22lat%22%3A%2241.880%22%2C%22lng%22%3A%22-87.624%22%2C%22ip%22%3A%2210.216.14.6%22%7D; s=37b47dc0-c97b-11ee-9ff6-0b0472e39f74; hb_session=9wBwFREGTjE0U2kdxHpW8g|1711519794|Z9WdBhWIxbaXrpKQtks7ko8iJPTLJPEbruRX5PoW55UkJyozZh6usOOPbp_7kFMZV-4MdnLAwdnBVai7fdQ7Iobq7SSqkbCd2NenyjczaY2gyP25zv6pr99rM-4PwkCCXztvmh8Rg9724JqG8OBYAJAOclYaJwBXBNEVZyppcfJa84beoRShMwQU7TkJavT-2U0NyNeRWAxb_UpfFauHADBe_IKyPrPcS6uzS45DqCxYclTbyMVyqbf1pVCFc08WRCzfmVx3RdddDNPV_-gIumqApfSp3Nzjkqf_nTbmFEF2MccDBrqCFB0xYuErpMgy4wVy8Z8Qqk6_bxDwHTGawQQA9CFr4hX5VDrV_Gct5S9figpfhKHNc7fzMaxKCI8w_hcPEOgoFaAjYKM3j_ziIX3Xqr1FNZ10Z7mxf8dz_zC9of1sFL_0VUHHuQBEKBi0sei_TB0KSTfsuwfVUVAQB-cS9ynRliEKgQ5_CNQbq-9YiHDsL7nkplQbcmjaHH3MLT4MQk7A_0SOFmMZ8m91_WP2j1Fsjgep9SPrfA9Lu1m-6SpSlBfnmwadgVrWJpFz2oa4el2_ep5gc2UDLbr3bM5WKKiTRbQRY--vdUNhJI5GMRtMFdsYKMjBb1Vacy9-HY2XMZd2tKbYfK1vYh76-dy0r9gLkioou5U8CxSid4yKShzb19tSHO4L2-jQa516h3dAPsz9-rNn0zzXpXd1K0IqXtUNqr9miC3NnDjXXuFHXQEDA6-SgOnuCuUkOAGH7mAx-fFPpCkQtmzm-kYRvs_sUAsmxTJOJUjyCmfuXGYTS7fAb6nQ7cZeHonjDZviMQUBQhgOPNXsWZ2XAAAYzMhBsYxIjk8USTZI4Gx87AzXvIVF8R6o-PNp8MJLM3FvJmrlUwzG0Jk-AFhCnpI2xCE4EzwcSHe8kkcN0XCYnRXjyVDhWDgTA1z6GffZuLNX51EF8Z0jaJz5Yyaf-Q1LHN71zdbhQ1hdBSEYgRpEfOYVRDg-FPAbdo0lziLeREzluD0McPJa7gIPe_npVIs00G_8EkivS2FgBLW8fTvvH_IZe2QRbYSWCEXsx556KUNmn6hjjlahgSD2yd7olHI16HvxZI6Ppno_SUtHYU08rNXSmFXhWBgcxCqWERZ6y5Q-dqtzj072cO2YUIUMwR_jkNkVfI1JiSaWfKFsGx8oLGidrFrmAXk6x6sWrHaipp-33iZE8CCmemevi93HRcQcE6NNLJW63wmem1FX3QdCCXdhTbF3EptT1k1JNHZnAiM5krTiPZvKkrNGmgdXW4HIwaIHjbwnvUATPhlzCkehlcgOa_Ivb70wLaVvG6jTHm_Wc2G6NCHSw1IRbmiJjxIF_dPOWRRz7oO-ZNQ1tLfQB9EUm1nVT7P1FsF8pL0Z4f4glrSBBXdoLuTpM-vPJ-8YTlh8QYb578ada7yrNEEGM-wpKdNZn7EJV-0QzXcIYqb9K3YEcBNq3PcAwu5HUtSembCojGrsufT6Lh1esySZcYSBHGouZThCui9u7p3vibDKLStGVaKT4H4F3gZERBlC8srGlb864ei7c0oc5kk_iT6r9dXDySrJvkfL1IvdLbz6_xkZaQ2fBawsxHfpV0t16w1pOiUpy4N_2Hufp8mZLpbQ-U-9m1M68utiBUIMy8bCV2oVkHF17QUTE3lT3XHgt2SuhOdBR_05hbq0HF2BmPavdJXCqYzPm5I5BSIySPnSsMUFuEQ79BwOqurZZtC0y5meS5gJGDV5d2ax106CkgITW1-b2TEozNLUIc1YxCg6sbesjDWPsF_jyTOMP6YG5vlaWcBK2BlODA3Rd41vcIHHRPeJDfXXdHMwAe5AF5TidBN1fkwli9UpcsZTFLvNEQ0NmfCYdHpCoSQa_Mwgjl1OKtT2SnGaTe1AK11Fqm_AHTFARuFl8fiUkdywe7ByBilXjbnS4F30mIwnrC-BX2lucfayIt6OdSdAd_A9Lh2FxsnJy2A08fMdfDGITg-b5jF1ocy3miaKY_qP9Xmp6mkgf3EN60nQ4KT1F1fQEt7b_RGIEjRyVC5sfytosqCDYnMtkIXzWnSb4-UlPt5yPTKJDYqeJJRIxRzZnkFSo3sYB9BF_EerwnlwNMmhMWtt1_QjDJYE-ppCFBYaipWaOLzmBxTi2y4WSEo3-uZ0Nyp_IIo_uBZb0aYonxfMZ10zYhNbbctbi6e3uVJyEBB0YdZK5_qHZLg6UdT0KvAI6n589CLAqxHfHYr5jk5OaA8t2yxGD00b4mrd4WywdeUQYzBurVOZ0t0D5-3-Ewlrp-i-d6cMkiIL9siYOG2Dq_UF7b5Gr_Xf2yv-yibBz0F8Zf2V_OTQj2EckVVDFbouAPr5Z3o_MtsMj_3OpqQ37Us-jf_IBh_WsRkqcIGfOkOmDv8l2xKWWTxLyYAmgS1vhoRgBTdPPnHzAvXg4fZ6DXVYT-FgG7cjEPaOyc7tlJFa_lw8LACUq-ON12MM2-PiT_naMTqcfvlSHsZ1BzBJ213CirrvvS7bEljw3Z8H29QYfmwaJoy0nhOffmVdS16q9wF04ajW5120g870K6kfTkwATG2IjSBuTvys9JL-BU7iceiPOGDrCzeEBu9-BPxcTHzsdpJ7cR9GFmkNMlp6fuLGke4tMam86_k7vZB3hnWzuSSLTrtUwhGbyDl7R52NTwxZwHouLt7Jyo9pauF11zf0z1avgnsZh0OtVrr2mq2Nvd3se20KBde68AyaTvrSNWmz7eTbFhtDkZXjup1FkCphzrS6VwUQqwZqmlE4vOMkA23PO-iRKVR1BChcnRWIFcyD_NqjUHge0k16KoX06B7b2kSmtZStojd5NWlJAbdgAaFsuTyGXrYNaFEdUByhWpwvr1WZol631BKwUYo6vQvWKINRZpujThCpj1JLNMOA3Ky_duvpSauMiYeV1iOyx3A5GNLFjcE5V-qD7snMyT5l5DnQaNzVjstFgZ9OE8LHJul7VlgrfDV4bHpcu9xI-_lPWqasM9MPa_WVCjrA6bKub_KvbMH0QMs2VS6mzc_4O2ZyKC1ENa4ZrWGcM_Xt85BjVNkcK-qU9kb0RuRXm-vYp-6YHMsnUx0Jwhw69cmIQA-tKk3q5qSrQs7GhGLQ5TA9y05wWBUtNXjYCd0RfDDKgsZbRnY9CcTU9TLFGS5DnFZF6XUC9pATX-yi-Z3-I2NeVPD9wIHiqc2iu4g21KEm3VBa4OCte925rK8oaZYh4R8SBtziK_bBrEYO4hVB5opIBb5CphBaa9XWOlCfnLh6tH5wTt3sn3NRHFd2zxFa6GJaEyTiXxBM82_gUpb-T72J9Q6Qmy1eJi8iNtWnUhq8UavmAbt9VMKiU6ExMqMDUdsLdb1wZApmGiEwtbNvETaNCh0kw_tEWEC6SCFZhzuIN_NZCa7T6Sx6fI80cj2xg3xcLZlinD7_zeACX28hAivIkVXqiQiDqTIQmXn4okA_1KiTY5xehA_iBE4hvN_1kBalUVsDkEc2uIR_dDedTlHwTQl6Kx7qMdWK1J9-f80hVqB79EzH9Udxf1takJDiOQwR2S6eK5CMUG8yHaXuf6pBEvqQCE87vESV0J0TEz_rOaCMOVzoHxIeMUa1K--IX3TO1wGVEYc3GIzasMOI2yUgC6wCkeIfE6R2UetiEwoDGYKXrrKeuxjtRD0iBti7xb2fZsw8O-DaIQM7elIryP-AMrwW_XKZ89od4Kc4VqrtCdZxF6kb50aIhPkPn71FrmTJ5cvNzRO8vFgcPmVZbqbmdvaXsh7FY7Rn6ol9OH9CC5dhD_KDW46pcaBVbyVwGQofySTe47eyic2bXtfv4532si8IvFbFYKeGlo18z_wXF-CijyoV115iY6nY7nHfK0cnIBBTAwa-bb2u7zEhx8Bp88pQjtAWVa2V0-dQY6R89v0IeweV-xZzRkr7Iv0; hb_session_2=jrTkxuhyIuQoi-UzXlxdxKlfMLelFpiNbWCmxydY4PqBwkP6sC43XFxpchQFLqVWNsHWWLdptMZnRKyff3Uh66SeriYsAWaDGSrwnfzkna4rE3EPiU2KemSZkQFCYZBRwwFxoBZEzs-wQrFuOQx8bER8bMaZ4-fyRKX9qEebAsvyU9D6yKyqIMmiRbDEixEXTZcmNwrZHUzra0BlO00Sl4PhJi1EKouWVhKVr_yR0aOp8dYSHDfP5IrbmeTI-NJ5yvZSMGw4D1vdmg78L0a-XYiUczvG8CHOqQYXgFfy4WkYzB9QtQxnJQQvVsUP1iiRPRfSqZ6a-sdeFgkDhxWCDwUeknn6LWU2cJ9kS6jg068bk5VcFAjME7jTOgshFdShabyphgpNY7kVYuWK4Dp-ZlM6jW0-XZUuu8t52-keC56OTFfij6VMjjx0dz1A_sfJEHZBKlTQEBNYM1t-yZ-7FAiNdLMTKbVLE_CzX_H6FAipPujqjnmS1W8mdL1S3oSwTVEpUdKCV2TPQmS7-KDg1zQR_uahjXJiczfgZQ1XWItdVFdNh10U_vxMI2GCny_RzBze9dx5bmG0X_dFGAkIEzKyDEmKeyOvVXIsaClCjAdUmXa0PPJByh2cbYpBLMVpAkXRqj9lcm2HHiO8bHuVfk7bt-7Y65AvKKlu9piwqnU4-rlL82CVmgsohb4eAOJIgnMDpFmtC47rK_iM6p19Lu0VlDiRkH3bzXbKCFeOSBf8LQY_I5kmgf1BGVe0yQqvb9K5UjAoh51B7M3hpZqhNDB4NdB38kppU-JP1t2Extv7d0aLiGPyjshrrXyn077ai5FOFaVt49M02khrT6B-AocatyCZnU45mWskWcoS1LEc1g1kwHdbWd0oQjdJMJwhHyOLDSI15tA5lnlha7--HqgqTil1O3BlZl7L0QB5cjKAKUEEREVt1wZI1aALePW4zPm6481TncYZk8iaOi6tYpOzvudyiMvSvkVqqbqm5sqGz0CgT_BVnDZRDJSdC62K2YizhoyKrwkJyBqU7k9mxr8cxeKWVf4J2lNHy-8UUJBziyihUkipy50qJYGN-Sdr-cwzl5S0rsOrdZBkFUYQEtpG6F6w7nEmHn5rQ8aeWMykF_zImvNRSUubwHgVqoPC4gl9wFYUe5yZvVOgiw6GFqRhujTKVireI-GOvWlJ-aXhO53fJQKHLd4gPpLvrMlAUkcIsEa6xEx_qZ-lvFF8PPo0JRzfoEvugPgp8yLUES9zi_feegJ4Cb3XC1rYjQ3roJ6Q1SMCBBZKVH6DQgWJz9O3S2URR7B_Zlwhz8MmFQTo_hg2k68nx_VsnvrbJcBwqOD-ZVMfsP_etkhgl7nJc4sL-qLq8K0O6iFOG35WYK5Wuc3Ph2tWO7Sq4hvji6XFmYgeR_PG8Veazo0Yl5S5S6tZny3U1MHC9vzDgylUx6UgOPjMwaqq4_Nh9k_-Zg6cFuOtJXXDxz9s12gh46yD9YOc5JstWVLILjri1ikEmkD0uxUKjY3f4lZO7lIxJ4OiVoz3umz58fkMCK2VxNpQkacg21oxZTV4D1RXrSZ31VH3zVmAV887lgcT3WDHnVbi1GYRbPO5b1aXq3JUhVkOjwrjbuuXOU4Hbw3xNOoQZH8wCZ9P_FNktoQiv0b05MsdVCXWfqb3bfvAuisZfGCFqawxpJpfxf8GQ942Yj479Fr9dunOzOm6Ench7PaRZ-GNZ7EAE1PYLdN6YB_j3Taj9A4LORAhl8ad8CDJuGHRbNG76KfeslnwEN8sBfnJp8fubLuk8T4zUq4Jmd38qgsmsR7OjX03hoSJlv4XTvoubKainISvI4di4GQqQkQ7ePOUyzo61FEQ6NvYSBpu31lJjItJ63Q-oiKD_pmZ5Y6ttCB8Q3aZsQ2izFpRxoD6AA--Y6tSxraaugshaKHVg7AwUDIgcVglqgJlSvKuxAga4hHc30MO3z2QP5jA__Y8KbPn9SIb2DMie0UWFqkKGVnTjDOXHq89A6PoWhmW9xwB157I-kHhrkMs5Yh1FOAYMbwVKaNXYQdxZCqlckGHU3SeMZQ1p0AT1KCG0-v5OxJ1PK-Yv0qY0KW2n4lQvWxIYUlZn8tqKpK8L4xn5xwkbFJZiPcSEnj_ZW8jmIU3L8OhLJZxjH2yjT6vkKgwxfCoH1R20GLiQQt59G8VWnHymjd1m4aJMR1vPlNcaSZbp33kAmMD5_vTIG22PQDBMg92WEBcr-kqlxXxEHavK9GQJFv4x1pzWEnQ_6Fr3tmqPS5y2oXonPLkQ4LoXigwiqBkH20aYdDquhMH2nXzso8H5bBHgBal-bqgbr2ueMeZjdbsxeEn9omWrwISBlCz0IuB561SWQCM8F3DyGza-rBz3vYRRGntig4FPcFxkGML9nHLlBxh8paw|bq_xMmKdBM1ZqSW9ePsf947SqPs",
+			"-H", "referer: https://dealinsights-v3.groupondev.com/showDeal?id=n-sams-club-membership-packages-16",
+			"-H", "sec-ch-ua: \"Google Chrome\";v=\"123\", \"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"123\"",
+			"-H", "sec-ch-ua-mobile: ?0",
+			"-H", "sec-ch-ua-platform: \"macOS\"",
+			"-H", "sec-fetch-dest: empty",
+			"-H", "sec-fetch-mode: cors",
+			"-H", "sec-fetch-site: same-origin",
+			"-H", "user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+		)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error executing cURL:", err)
+			return
+		}
+
+		// Calculate time taken and print
+		elapsed := time.Since(start)
+		fmt.Printf("UUID: %s , %s\n", uuid, elapsed)
+		fmt.Printf("Response: %s\n", strings.TrimSpace(string(output)))
+	}
+}
